@@ -28,7 +28,6 @@ static uint8_t fca_fastback_get_counter(const CANPacket_t *to_push) {
 }
 
 static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
-  int addr = GET_ADDR(to_push);
   int len = GET_LEN(to_push);
   // CRC is in the last byte, poly is same as SAE J1850 but uses a different init value and output XOR
   uint8_t crc = 0xFF;
