@@ -147,12 +147,12 @@ static safety_config fiat_init(uint16_t param) {
   };
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.DAS_1,         0, 8, .check_checksum = true, .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  0, 8, .check_checksum = true, .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 8,   .check_checksum = true, .max_counter = 15U, .frequency = 50U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  0, 11,  .check_checksum = true, .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
-    {FASTBACK_ADDRS.DAS_1,        0, 8},
+    {FASTBACK_ADDRS.DAS_1,        1, 8},
     {FASTBACK_ADDRS.LKAS_COMMAND, 0, 11},
   };
 
