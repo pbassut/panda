@@ -39,13 +39,6 @@ static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
     crc = fca_fastback_crc8_lut_j1850[crc];
   }
 
-  // TODO: bruteforce final XORs for Panda relevant messages
-  if (addr == 0xFF) {
-    final_xor = 0xFFU;
-  } else {
-    final_xor = 0x0;
-  }
-
   return (uint8_t)(crc ^ final_xor);
 }
 
@@ -116,7 +109,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
     const bool is_resume = GET_BYTE(to_send, 0) == 0x8;
     const bool allowed = is_cancel || (is_resume && controls_allowed);
     if (!allowed) {
-      tx = false;
+      tx = true;
     }
   }
 
@@ -141,6 +134,8 @@ static int fiat_fwd_hook(int bus_num, int addr) {
 }
 
 static safety_config fiat_init(uint16_t param) {
+  gen_crc_lookup_table_8(0x1D, fca_fastback_crc8_lut_j1850);
+
   static const FiatAddrs FASTBACK_ADDRS = {
     .DAS_1            = 0x2FA,   // ACC engagement states from DASM
     .LKAS_COMMAND     = 0x1F6,   // LKAS controls from DASM
