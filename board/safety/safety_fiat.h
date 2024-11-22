@@ -3,9 +3,11 @@
 #include "safety_declarations.h"
 
 typedef struct {
+  const int ABS_3;
   const int ABS_6;
   const int DAS_1;
   const int DAS_2;
+  const int ENGINE_1;
   const int LKAS_COMMAND;
 } FiatAddrs;
 
@@ -18,22 +20,52 @@ static const FiatAddrs *fiat_addrs;
 uint8_t fca_fastback_crc8_lut_j1850[256];  // Static lookup table for CRC8 SAE J1850
 
 static uint32_t fca_fastback_get_checksum(const CANPacket_t *to_push) {
-  int checksum_byte = GET_LEN(to_push) - 1U;
+  int checksum_pos = 1U;
+  const int addr = GET_ADDR(to_push);
+
+  if(addr == fiat_addrs->DAS_1) {
+    checksum_pos = 2;
+  }
+
+  int checksum_byte = GET_LEN(to_push) - checksum_pos;
   return (uint8_t)(GET_BYTE(to_push, checksum_byte));
 }
 
 static uint8_t fca_fastback_get_counter(const CANPacket_t *to_push) {
-  int counter_byte = GET_LEN(to_push) - 2U;
-  return (uint8_t)(GET_BYTE(to_push, counter_byte) & 0xFU);
+  int counter_pos = 2U;
+
+  const int addr = GET_ADDR(to_push);
+  if(addr == fiat_addrs->ABS_3) {
+    counter_pos = 4;
+  }
+  if(addr == fiat_addrs->DAS_1) {
+    counter_pos = 3;
+  }
+
+  int counter_byte = GET_BYTE(to_push, GET_LEN(to_push) - counter_pos);
+
+  if(addr == fiat_addrs->ABS_3) {
+    counter_byte = counter_byte >> 3;
+  }
+
+  return counter_byte & 0xFU;
 }
 
 static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
   int len = GET_LEN(to_push);
+  const int addr = GET_ADDR(to_push);
   // CRC is in the last byte, poly is same as SAE J1850 but uses a different init value and output XOR
   uint8_t crc = 0xFF;
   uint8_t final_xor = 0xFF;
 
-  for (int i = 0; i < (len - 1); i++) {
+  int crc_pos = 1;
+
+  if(addr == fiat_addrs->DAS_1) {
+    // for DAS_1 only bytes before the checksum are taken in account;
+    crc_pos = 2;
+  }
+
+  for (int i = 0; i < (len - crc_pos); i++) {
     crc ^= (uint8_t)GET_BYTE(to_push, i);
     crc = fca_fastback_crc8_lut_j1850[crc];
   }
@@ -45,28 +77,28 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   const int bus = GET_BUS(to_push);
   const int addr = GET_ADDR(to_push);
 
-  if (bus == 0 && addr == 0x101) {
+  if (bus == 0 && addr == fiat_addrs->ABS_6) {
     int speed = GET_BYTE(to_push, 1) + (GET_BYTE(to_push, 2) >> 5);
     vehicle_moving = speed != 0;
   }
 
-  if (bus == 0 && addr == 0xFA) {
+  if (bus == 0 && addr == fiat_addrs->ABS_3) {
     int pressed = (GET_BYTE(to_push, 0) >> 3);
     brake_pressed = pressed == 1;
   }
 
-  if (bus == 1 && addr == 0x2FA) {
+  if (bus == 1 && addr == fiat_addrs->DAS_1) {
     int button_pressed = GET_BYTE(to_push, 0);
     int resume_pressed = button_pressed == 8;
     controls_allowed = resume_pressed;
   }
 
-  if (bus == 1 && addr == 0x5A5) {
+  if (bus == 1 && addr == fiat_addrs->DAS_2) {
     int acc_state = GET_BIT(to_push, 21U);
     pcm_cruise_check(acc_state == 1);
   }
 
-  if (bus == 0 && addr == 0xFC) {
+  if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
     int pedal_threshold = (GET_BYTE(to_push, 2) << 3 >> 3) + (GET_BYTE(to_push, 3) >> 5);
     gas_pressed = pedal_threshold > 0;
   }
@@ -136,13 +168,21 @@ static safety_config fiat_init(uint16_t param) {
   gen_crc_lookup_table_8(0x1D, fca_fastback_crc8_lut_j1850);
 
   static const FiatAddrs FASTBACK_ADDRS = {
-    .DAS_1            = 0x2FA,   // ACC engagement states from DASM
-    .LKAS_COMMAND     = 0x1F6,   // LKAS controls from DASM
+    .ABS_3            = 0xFA,
+    .ABS_6            = 0x101,
+    .DAS_1            = 0x2FA,
+    .DAS_2            = 0x5A5,
+    .ENGINE_1         = 0xFC,
+    .LKAS_COMMAND     = 0x1F6,
   };
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4,   .check_checksum = true, .max_counter = 15U, .frequency = 50U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  0, 4,  .check_checksum = true, .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_3,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,  .max_counter = 0U,  .frequency = 1U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      1, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  0, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
