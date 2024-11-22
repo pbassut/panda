@@ -128,7 +128,8 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
     bool steer_req = GET_BIT(to_send, 7U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
-      tx = false;
+      // tx = false;
+      tx = true;
     }
   }
 
