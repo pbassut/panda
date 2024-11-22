@@ -8,9 +8,8 @@ from panda.tests.safety.common import CANPackerPanda
 
 class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafetyTest):
   TX_MSGS = [
-    [0x73E, 0],
-    [0x602, 1],
-    [0x1F6, 2]
+    [0x2FA, 1],
+    [0x1F6, 2],
   ]
   STANDSTILL_THRESHOLD = 0
   RELAY_MALFUNCTION_ADDRS = {0: (0x292,)}

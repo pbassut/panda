@@ -135,8 +135,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
     bool steer_req = GET_BIT(to_send, 7U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
-      // tx = false;
-      tx = true;
+      tx = false;
     }
   }
 
@@ -189,7 +188,7 @@ static safety_config fiat_init(uint16_t param) {
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,  .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 6, .check_checksum = true,   .max_counter = 15U,  .frequency = 1U},   { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 6, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  2, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
