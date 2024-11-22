@@ -33,12 +33,10 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
     self.safety.init_tests()
 
   def _button_msg(self, resume):
-    values = {"CRUISE_BUTTON_PRESSED": 8 if resume else 128}
+    values = {"CRUISE_BUTTON_PRESSED": 32 if resume else 128}
     return self.packer.make_can_msg_panda("DAS_1", self.DAS_BUS, values)
 
   def _pcm_status_msg(self, enable):
-    #values = {"ACC_STATE": 1 if enable else 0}
-    #return self.packer.make_can_msg_panda("DAS_1", self.DAS_BUS, values)
     values = {"ACC_ENGAGED": 1 if enable else 0}
     return self.packer.make_can_msg_panda("DAS_2", self.DAS_BUS, values)
 
