@@ -40,6 +40,7 @@ static uint8_t fca_fastback_get_counter(const CANPacket_t *to_push) {
   if(addr == fiat_addrs->ABS_3) {
     counter_pos = 4;
   }
+
   if(addr == fiat_addrs->DAS_1) {
     counter_pos = 3;
   }
@@ -90,12 +91,13 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     vehicle_moving = speed != 0;
   }
 
-  if (bus == 0 && addr == fiat_addrs->ABS_3) {
+  if (bus == 1 && addr == fiat_addrs->ABS_3) {
     brake_pressed = GET_BIT(to_push, 3);
   }
 
-  if (bus == 1 && addr == fiat_addrs->ENGINE_2) {
-    gas_pressed = (GET_BYTE(to_push, 4) & 0x3) == 2;
+  if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
+    int gas_pressed_threshold = (GET_BYTE(to_push, 2) & 0x1F) + (GET_BYTE(to_push, 3) & 0xE0);
+    gas_pressed = gas_pressed_threshold > 0;
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_1) {
@@ -184,7 +186,7 @@ static safety_config fiat_init(uint16_t param) {
   };
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.ABS_3,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_3,         1, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,  .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},

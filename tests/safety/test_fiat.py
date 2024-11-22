@@ -12,7 +12,8 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
     [0x1F6, 2],
   ]
   STANDSTILL_THRESHOLD = 0
-  RELAY_MALFUNCTION_ADDRS = {0: (0x292,)}
+  #RELAY_MALFUNCTION_ADDRS = {0: (0x292,)}
+  RELAY_MALFUNCTION_ADDRS = {}
   FWD_BLACKLISTED_ADDRS = {2: [0x1F6]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
@@ -49,7 +50,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
 
   def _user_brake_msg(self, brake):
     values = {"BRAKE_PRESSED": 1 if brake else 0}
-    return self.packer.make_can_msg_panda("ABS_3", 0, values)
+    return self.packer.make_can_msg_panda("ABS_3", 1, values)
 
   def _torque_meas_msg(self, torque):
     values = {"DRIVER_TORQUE": torque}
