@@ -7,6 +7,7 @@ typedef struct {
   const int ABS_6;
   const int DAS_1;
   const int DAS_2;
+  const int EPS_2;
   const int ENGINE_1;
   const int ENGINE_2;
   const int LKAS_COMMAND;
@@ -77,6 +78,12 @@ static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
 static void fiat_rx_hook(const CANPacket_t *to_push) {
   const int bus = GET_BUS(to_push);
   const int addr = GET_ADDR(to_push);
+
+  // Measured EPS torque
+  if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
+    int torque_meas_new = GET_BYTE(to_push, 2) + (GET_BYTE(to_push, 3) & 0xE0) - 1024U;
+    update_sample(&torque_meas, torque_meas_new);
+  }
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
     int speed = GET_BYTE(to_push, 1) + (GET_BYTE(to_push, 2) >> 5);
@@ -171,6 +178,7 @@ static safety_config fiat_init(uint16_t param) {
     .ABS_6            = 0x101,
     .DAS_1            = 0x2FA,
     .DAS_2            = 0x5A5,
+    .EPS_2            = 0x106,
     .ENGINE_1         = 0xFC,
     .ENGINE_2         = 0xF4,
     .LKAS_COMMAND     = 0x1F6,
@@ -181,6 +189,7 @@ static safety_config fiat_init(uint16_t param) {
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,  .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 6, .check_checksum = true,   .max_counter = 15U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  2, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
