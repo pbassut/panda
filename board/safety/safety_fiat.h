@@ -8,6 +8,7 @@ typedef struct {
   const int DAS_1;
   const int DAS_2;
   const int ENGINE_1;
+  const int ENGINE_2;
   const int LKAS_COMMAND;
 } FiatAddrs;
 
@@ -83,8 +84,11 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_3) {
-    int pressed = (GET_BYTE(to_push, 0) >> 3);
-    brake_pressed = pressed == 1;
+    brake_pressed = GET_BIT(to_push, 3);
+  }
+
+  if (bus == 1 && addr == fiat_addrs->ENGINE_2) {
+    gas_pressed = (GET_BYTE(to_push, 4) & 0x3) == 2;
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_1) {
@@ -96,11 +100,6 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
     int acc_state = GET_BIT(to_push, 21U);
     pcm_cruise_check(acc_state == 1);
-  }
-
-  if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
-    int pedal_threshold = (GET_BYTE(to_push, 2) << 3 >> 3) + (GET_BYTE(to_push, 3) >> 5);
-    gas_pressed = pedal_threshold > 0;
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
@@ -173,6 +172,7 @@ static safety_config fiat_init(uint16_t param) {
     .DAS_1            = 0x2FA,
     .DAS_2            = 0x5A5,
     .ENGINE_1         = 0xFC,
+    .ENGINE_2         = 0xF4,
     .LKAS_COMMAND     = 0x1F6,
   };
 
@@ -180,8 +180,9 @@ static safety_config fiat_init(uint16_t param) {
     {.msg = {{FASTBACK_ADDRS.ABS_3,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,  .max_counter = 0U,  .frequency = 1U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      1, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,  .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = true,   .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.LKAS_COMMAND,  0, 4, .check_checksum = true,   .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
   };
 
@@ -189,7 +190,6 @@ static safety_config fiat_init(uint16_t param) {
     {FASTBACK_ADDRS.DAS_1,        1, 4},
     {FASTBACK_ADDRS.LKAS_COMMAND, 0, 4},
   };
-
 
   fiat_platform = FASTBACK_LIMITED_EDITION;
   fiat_addrs = &FASTBACK_ADDRS;
