@@ -158,8 +158,9 @@ static int fiat_fwd_hook(int bus_num, int addr) {
   }
 
   // forward all messages from camera except LKAS messages
-  const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
-  if ((bus_num == 2) && !is_lkas){
+  // const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
+  // if ((bus_num == 2) && !is_lkas){
+  if (bus_num == 2) {
     bus_fwd = 0;
   }
 
