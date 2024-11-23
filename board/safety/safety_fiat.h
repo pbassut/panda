@@ -100,12 +100,6 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     gas_pressed = gas_pressed_threshold > 0;
   }
 
-  //if (bus == 1 && addr == fiat_addrs->DAS_1) {
-  //  int button_pressed = GET_BYTE(to_push, 0);
-  //  int acc_set_pressed = button_pressed == 0x20;
-  //  controls_allowed = acc_set_pressed;
-  //}
-
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
     int acc_state = GET_BIT(to_push, 21U);
     pcm_cruise_check(acc_state == 1);
