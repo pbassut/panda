@@ -12,7 +12,7 @@ bool safety_config_valid() {
     const RxCheck addr = current_safety_config.rx_checks[i];
     bool valid = addr.status.msg_seen && !addr.status.lagging && addr.status.valid_checksum && (addr.status.wrong_counters < MAX_WRONG_COUNTERS) && addr.status.valid_quality_flag;
     if (!valid) {
-      printf("i %d addr 0x%x seen %d lagging %d valid checksum %d wrong counters %d valid quality flag %d\n", i, addr.msg->addr, addr.status.msg_seen, addr.status.lagging, addr.status.valid_checksum, addr.status.wrong_counters, addr.status.valid_quality_flag);
+      printf("i %d addr 0x%x bus %d seen %d lagging %d valid checksum %d wrong counters %d valid quality flag %d\n", i, addr.msg->addr, addr.msg->bus, addr.status.msg_seen, addr.status.lagging, addr.status.valid_checksum, addr.status.wrong_counters, addr.status.valid_quality_flag);
       return false;
     }
   }
