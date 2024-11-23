@@ -101,8 +101,9 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
-    int acc_state = GET_BIT(to_push, 21U);
-    pcm_cruise_check(acc_state == 1);
+    int acc_state = GET_BYTE(to_push, 2) & 0x20;
+    int cruise_engaged = acc_state >> 5;
+    pcm_cruise_check(cruise_engaged);
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
