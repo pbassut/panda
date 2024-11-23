@@ -151,6 +151,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
 static int fiat_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
+  UNUSED(addr);
 
   // forward to camera
   if (bus_num == 0) {
