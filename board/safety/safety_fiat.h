@@ -11,6 +11,7 @@ typedef struct {
   const int ENGINE_1;
   const int ENGINE_2;
   const int LKAS_COMMAND;
+  const int STEERING;
 } FiatAddrs;
 
 typedef enum {
@@ -176,16 +177,18 @@ static safety_config fiat_init(uint16_t param) {
     .ENGINE_1         = 0xFC,
     .ENGINE_2         = 0xF4,
     .LKAS_COMMAND     = 0x1F6,
+    .STEERING         = 0xDE,
   };
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.ABS_3,         1, 8, .check_checksum = false,   .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = false,   .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = false,   .max_counter = 0U, .frequency = 50U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,   .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = false,   .max_counter = 0U, .frequency = 99U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = false,   .max_counter = 0U, .frequency = 99U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = false,   .max_counter = 0U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_3,         1, 8, .check_checksum = true,     .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.STEERING,      0, 6, .check_checksum = true,     .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,     .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = false,    .max_counter = 0U, .frequency = 50U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,    .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = false,    .max_counter = 0U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,     .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = true,     .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
