@@ -151,7 +151,6 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
 static int fiat_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
-  UNUSED(addr);
 
   // forward to camera
   if (bus_num == 0) {
@@ -159,9 +158,8 @@ static int fiat_fwd_hook(int bus_num, int addr) {
   }
 
   // forward all messages from camera except LKAS messages
-  // const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
-  // if ((bus_num == 2) && !is_lkas){
-  if (bus_num == 2) {
+  const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
+  if ((bus_num == 2) && !is_lkas){
     bus_fwd = 0;
   }
 
