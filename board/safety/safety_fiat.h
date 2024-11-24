@@ -183,7 +183,7 @@ static safety_config fiat_init(uint16_t param) {
   };
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.ABS_1,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 80U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_1,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 50U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ABS_3,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ABS_6,         1, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = false,     .max_counter = 0U, .frequency = 40U},  { 0 }, { 0 }}},
