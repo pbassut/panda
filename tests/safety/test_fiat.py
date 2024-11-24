@@ -16,11 +16,11 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
   FWD_BLACKLISTED_ADDRS = {2: [0x1F6]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
-  MAX_RATE_UP = 3
-  MAX_RATE_DOWN = 3
   MAX_TORQUE = 261
   MAX_RT_DELTA = 112
   RT_INTERVAL = 250000
+  MAX_RATE_UP = 3
+  MAX_RATE_DOWN = 3
   MAX_TORQUE_ERROR = 80
 
   DAS_BUS = 1
@@ -49,7 +49,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
 
   def _user_brake_msg(self, brake):
     values = {"BRAKE_PRESSED": 1 if brake else 0}
-    return self.packer.make_can_msg_panda("ABS_3", 1, values)
+    return self.packer.make_can_msg_panda("ABS_3", 0, values)
 
   def _torque_meas_msg(self, torque):
     values = {"DRIVER_TORQUE": torque}
