@@ -88,7 +88,7 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     vehicle_moving = speed != 0;
   }
 
-  if (bus == 0 && addr == fiat_addrs->ABS_6) {
+  if (bus == 1 && addr == fiat_addrs->ABS_6) {
     int break_pressure_1 = (GET_BYTE(to_push, 2U) & 0x1F) << 6;
     int break_pressure_2 = (GET_BYTE(to_push, 3U) & 0xFC) >> 2;
     int total_break_pressure = break_pressure_1 + break_pressure_2;
@@ -131,7 +131,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
     bool steer_req = GET_BIT(to_send, 12U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
-      tx = true;
+      tx = false;
     }
   }
 
@@ -183,12 +183,12 @@ static safety_config fiat_init(uint16_t param) {
   };
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.ABS_1,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_1,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 80U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ABS_3,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6,         1, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = false,     .max_counter = 0U, .frequency = 40U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = false,     .max_counter = 0U, .frequency = 100U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = false,     .max_counter = 0U, .frequency = 70U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 99U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.GEAR,          1, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 1U}, { 0 }, { 0 }}},
