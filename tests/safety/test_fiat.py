@@ -12,7 +12,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
     [0x1F6, 0],
   ]
   STANDSTILL_THRESHOLD = 0
-  RELAY_MALFUNCTION_ADDRS = {0: (0x2FA,)}
+  RELAY_MALFUNCTION_ADDRS = {0: (0x1F6,)}
   FWD_BLACKLISTED_ADDRS = {2: [0x1F6]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
