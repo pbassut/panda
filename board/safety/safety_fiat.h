@@ -37,19 +37,16 @@ static uint32_t fca_fastback_get_checksum(const CANPacket_t *to_push) {
 }
 
 static uint8_t fca_fastback_get_counter(const CANPacket_t *to_push) {
-  uint8_t counter_byte = GET_BYTE(to_push, GET_LEN(to_push) - 2U);
-
   const int addr = GET_ADDR(to_push);
   if(addr == fiat_addrs->DAS_1) {
-    counter_byte = GET_BYTE(to_push, 1U);
+    return GET_BYTE(to_push, 3U) & 0xF;
   }
 
   if(addr == fiat_addrs->ABS_3) {
-    counter_byte = GET_BYTE(to_push, 4U);
-    counter_byte = counter_byte << 1 >> 3;
+    return GET_BYTE(to_push, 4U) & 0x78;
   }
 
-  return (counter_byte & 0xFU);
+  return GET_BYTE(to_push, GET_LEN(to_push) - 2U) & 0xF;
 }
 
 static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
@@ -82,30 +79,32 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
     uint16_t byte_1 = GET_BYTE(to_push, 2U) << 3;
     uint16_t byte_2 = GET_BYTE(to_push, 3U) & 0xE0;
-    uint16_t torque_meas_new = byte_1 | (byte_2 >> 5);
+    uint16_t torque_meas_new = byte_1 + (byte_2 >> 5);
     update_sample(&torque_meas, torque_meas_new - 1024U);
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
-    uint8_t speed = GET_BYTE(to_push, 1U) + (GET_BYTE(to_push, 2U) >> 5);
+    uint16_t speed = GET_BYTE(to_push, 1U) + GET_BYTE(to_push, 2U);
     vehicle_moving = speed != 0;
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_3) {
-    brake_pressed = GET_BIT(to_push, 3U);
+    int break_pressure_1 = (GET_BYTE(to_push, 2U) & 0x1F);
+    int break_pressure_2 = (GET_BYTE(to_push, 3U) & 0xFC);
+    int total_break_pressure = break_pressure_1 + break_pressure_2;
+    brake_pressed = total_break_pressure > 0;
   }
 
   if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
-    uint8_t byte_2 = (GET_BYTE(to_push, 2U) & 0x1F) << 3;
-    uint8_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0) >> 5;
-    uint8_t gas_pressed_threshold = (byte_2 | byte_3) * 0.3942;
+    int byte_2 = (GET_BYTE(to_push, 2U) & 0x1FU);
+    int byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U);
+    int gas_pressed_threshold = (byte_2 + byte_3) * 0.3942;
     gas_pressed = gas_pressed_threshold > 0;
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
-    int acc_state = GET_BYTE(to_push, 2U) & 0x20;
-    int cruise_engaged = acc_state >> 5;
-    pcm_cruise_check(cruise_engaged);
+    int acc_state = GET_BIT(to_push, 21U);
+    pcm_cruise_check(acc_state == 1);
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
