@@ -82,7 +82,7 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
 
   // Measured EPS torque
   if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
-    int torque_meas_new = GET_BYTE(to_push, 2) + (GET_BYTE(to_push, 3) & 0xE0) - 1024U;
+    int torque_meas_new = (((GET_BYTE(to_push, 2) << 8) + (GET_BYTE(to_push, 3) & 0xE0)) >> 5) - 1024U;
     update_sample(&torque_meas, torque_meas_new);
   }
 
@@ -110,27 +110,25 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
 }
 
 static bool fiat_tx_hook(const CANPacket_t *to_send) {
-  const SteeringLimits FASTBACK_STEERING_LIMITS = {
-    .max_steer = 361,
-    .max_rt_delta = 182,
-    .max_rt_interval = 250000,
-    .max_rate_up = 14,
-    .max_rate_down = 14,
-    .max_torque_error = 80,
-    .type = TorqueMotorLimited,
-  };
-
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
   // STEERING
   if (addr == fiat_addrs->LKAS_COMMAND) {
-    int desired_torque = (GET_BYTE(to_send, 0) | GET_BYTE(to_send, 1));
+    const SteeringLimits limits = {
+      .max_steer = 261,
+      .max_rt_delta = 112,
+      .max_rt_interval = 250000,
+      .max_rate_up = 3,
+      .max_rate_down = 3,
+      .max_torque_error = 80,
+      .type = TorqueMotorLimited,
+    };
+
+    int desired_torque = ((GET_BYTE(to_send, 0) << 8) + GET_BYTE(to_send, 1)) >> 5;
     desired_torque -= 1024;
 
-    const SteeringLimits limits = FASTBACK_STEERING_LIMITS;
-
-    bool steer_req = GET_BIT(to_send, 7U);
+    bool steer_req = GET_BIT(to_send, 12U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
       tx = false;
     }

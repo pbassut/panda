@@ -56,7 +56,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
     return self.packer.make_can_msg_panda("EPS_2", 0, values)
 
   def _torque_cmd_msg(self, torque, steer_req=1):
-    values = {"STEERING_TORQUE": torque }
+    values = {"STEERING_TORQUE": torque, "LKAS_WATCH_STATUS": steer_req}
     return self.packer.make_can_msg_panda("LKAS_COMMAND", 0, values)
 
   def test_buttons(self):
