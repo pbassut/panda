@@ -3,19 +3,12 @@
 #include "safety_declarations.h"
 
 typedef struct {
-  // const int ABS_1;
-  // const int ABS_3;
   const int ABS_6;
-  // const int BCM_1;
   const int DAS_1;
   const int DAS_2;
   const int EPS_2;
   const int ENGINE_1;
-  // const int ENGINE_2;
   const int LKAS_COMMAND;
-  // const int GEAR;
-  // const int STEERING;
-  // const int SEATBELTS;
 } FiatAddrs;
 
 typedef enum {
@@ -40,13 +33,10 @@ static uint32_t fca_fastback_get_checksum(const CANPacket_t *to_push) {
 
 static uint8_t fca_fastback_get_counter(const CANPacket_t *to_push) {
   const int addr = GET_ADDR(to_push);
-  if(addr == fiat_addrs->DAS_1) {
-    return GET_BYTE(to_push, 3U) & 0xF;
-  }
 
-  // if(addr == fiat_addrs->ABS_3) {
-  //   return GET_BYTE(to_push, 4U) & 0x78;
-  // }
+  if(addr == fiat_addrs->DAS_1) {
+    return GET_BYTE(to_push, 1U) & 0xF;
+  }
 
   return GET_BYTE(to_push, GET_LEN(to_push) - 2U) & 0xF;
 }
@@ -168,37 +158,23 @@ static int fiat_fwd_hook(int bus_num, int addr) {
 }
 
 const FiatAddrs FASTBACK_ADDRS = {
-  // .ABS_1            = 0xEE,
-  // .ABS_3            = 0xFA,
   .ABS_6            = 0x101,
-  // .BCM_1            = 0x41B,
   .DAS_1            = 0x2FA,
   .DAS_2            = 0x5A5,
   .EPS_2            = 0x106,
   .ENGINE_1         = 0xFC,
-  // .ENGINE_2         = 0xF4,
   .LKAS_COMMAND     = 0x1F6,
-  // .GEAR             = 0x5A8,
-  // .STEERING         = 0xDE,
-  // .SEATBELTS        = 0x257,
 };
 
 static safety_config fiat_init(uint16_t param) {
   gen_crc_lookup_table_8(0x1D, fca_fastback_crc8_lut_j1850);
 
   static RxCheck fastback_rx_checks[] = {
-    // {.msg = {{FASTBACK_ADDRS.ABS_1,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 80U}, { 0 }, { 0 }}},
-    // {.msg = {{FASTBACK_ADDRS.ABS_3,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
-    // {.msg = {{FASTBACK_ADDRS.BCM_1,         0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 1U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = false,     .max_counter = 0U, .frequency = 40U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 40U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = false,     .max_counter = 0U, .frequency = 50U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 99U},  { 0 }, { 0 }}},
-    // {.msg = {{FASTBACK_ADDRS.ENGINE_2,      1, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 100U},  { 0 }, { 0 }}},
-    // {.msg = {{FASTBACK_ADDRS.GEAR,          1, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 1U}, { 0 }, { 0 }}},
-    // {.msg = {{FASTBACK_ADDRS.STEERING,      0, 6, .check_checksum = false,     .max_counter = 0U, .frequency = 100U}, { 0 }, { 0 }}},
-    // {.msg = {{FASTBACK_ADDRS.SEATBELTS,     0, 8, .check_checksum = false,     .max_counter = 0U, .frequency = 6U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
