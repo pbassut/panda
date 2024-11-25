@@ -38,7 +38,7 @@ static uint8_t fca_fastback_get_counter(const CANPacket_t *to_push) {
     return GET_BYTE(to_push, 1U) & 0xF;
   }
 
-  return GET_BYTE(to_push, GET_LEN(to_push) - 2U) & 0xF;
+  return (GET_BYTE(to_push, GET_LEN(to_push) - 2U)) & 0xF;
 }
 
 static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
