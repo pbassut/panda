@@ -6,7 +6,7 @@ import panda.tests.safety.common as common
 from panda.tests.safety.common import CANPackerPanda
 
 
-class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafetyTest):
+class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafetyTest):
   TX_MSGS = [
     [0x2FA, 1],
     [0x1F6, 0],
@@ -22,6 +22,8 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
   MAX_RATE_UP = 3
   MAX_RATE_DOWN = 3
   MAX_TORQUE_ERROR = 80
+  DRIVER_TORQUE_FACTOR = 1
+  DRIVER_TORQUE_ALLOWANCE = 40
 
   DAS_BUS = 1
 
@@ -51,7 +53,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.MotorTorqueSteeringSafety
     values = {"BRAKE_PRESSURE": brake}
     return self.packer.make_can_msg_panda("ABS_6", 0, values)
 
-  def _torque_meas_msg(self, torque):
+  def _torque_driver_msg(self, torque):
     values = {"DRIVER_TORQUE": torque}
     return self.packer.make_can_msg_panda("EPS_2", 0, values)
 
