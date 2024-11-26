@@ -129,8 +129,8 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
   // FORCE CANCEL: only the cancel button press is allowed
   if (addr == fiat_addrs->DAS_1) {
-    const bool is_cancel = GET_BIT(to_send, 7U) == 1;
-    const bool is_acc_set = GET_BIT(to_send, 5U) == 1;
+    const bool is_cancel = GET_BIT(to_send, 7U);
+    const bool is_acc_set = GET_BIT(to_send, 5U);
     const bool allowed = is_cancel || (is_acc_set && controls_allowed);
     if (!allowed) {
       tx = false;
