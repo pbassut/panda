@@ -155,6 +155,8 @@ static int fiat_fwd_hook(int bus_num, int addr) {
     bus_fwd = 0;
   }
 
+  UNUSED(addr)
+
   return bus_fwd;
 }
 
