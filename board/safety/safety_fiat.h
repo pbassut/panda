@@ -123,7 +123,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
 
     bool steer_req = GET_BIT(to_send, 12U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
-      tx = true;
+      tx = false;
     }
   }
 
@@ -149,13 +149,10 @@ static int fiat_fwd_hook(int bus_num, int addr) {
   }
 
   // forward all messages from camera except LKAS messages
-  // const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
-  // if ((bus_num == 2) && !is_lkas){
-  if (bus_num == 2){
+  const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
+  if ((bus_num == 2) && !is_lkas){
     bus_fwd = 0;
   }
-
-  UNUSED(addr);
 
   return bus_fwd;
 }
