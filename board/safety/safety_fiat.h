@@ -72,7 +72,7 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     uint16_t byte_1 = GET_BYTE(to_push, 2U) << 3;
     uint16_t byte_2 = GET_BYTE(to_push, 3U) & 0xE0;
     uint16_t torque_meas_new = byte_1 + (byte_2 >> 5);
-    update_sample(&torque_meas, torque_meas_new - 1024U);
+    update_sample(&torque_driver, torque_meas_new - 1024U);
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
