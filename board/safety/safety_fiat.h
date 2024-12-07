@@ -4,6 +4,7 @@
 
 typedef struct {
   const int ABS_6;
+  const int ABS_6_2;
   const int DAS_1;
   const int DAS_2;
   const int EPS_2;
@@ -67,12 +68,13 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   const int bus = GET_BUS(to_push);
   const int addr = GET_ADDR(to_push);
 
-  // Measured EPS torque
+  // Measured driver torque
   if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
-    uint16_t byte_1 = GET_BYTE(to_push, 2U) << 3;
-    uint16_t byte_2 = GET_BYTE(to_push, 3U) & 0xE0;
-    uint16_t torque_meas_new = byte_1 + (byte_2 >> 5);
-    update_sample(&torque_driver, torque_meas_new - 1024U);
+    uint16_t byte_1 = (GET_BYTE(to_push, 2U) & 0xFF) << 3;
+    uint16_t byte_2 = (GET_BYTE(to_push, 3U) & 0xE0) >> 5;
+    uint16_t torque_driver_new = byte_1 + byte_2;
+
+    update_sample(&torque_driver, (torque_driver_new * -1) + 1024U);
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
@@ -82,21 +84,23 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
     uint16_t speed = (GET_BYTE(to_push, 1U) << 3) + ((GET_BYTE(to_push, 2U) & 0xE0U) >> 5);
-    vehicle_moving = speed != 0;
-  }
-
-  if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
-    uint16_t byte_2 = (GET_BYTE(to_push, 2U) & 0x1FU) << 3;
-    uint16_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U) >> 5;
-    uint16_t gas_pressed_threshold = (byte_2 | byte_3) * 0.3942;
-    gas_pressed = gas_pressed_threshold > 0;
+    print("speed: "); putl(speed); print("\n");
+    vehicle_moving = speed > 0;
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
     uint16_t break_pressure_1 = (GET_BYTE(to_push, 2U) & 0x1F) << 6;
     uint16_t break_pressure_2 = (GET_BYTE(to_push, 3U) & 0xFC) >> 2;
     uint16_t total_break_pressure = break_pressure_1 | break_pressure_2;
+    print("total break pressure: "); putl(total_break_pressure); print("\n");
     brake_pressed = total_break_pressure > 0;
+  }
+
+  if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
+    uint16_t byte_2 = (GET_BYTE(to_push, 2U) & 0x1FU) << 3;
+    uint16_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U) >> 5;
+    float gas_pressed_threshold = (byte_2 + byte_3) * 0.3942;
+    gas_pressed = gas_pressed_threshold > 0;
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
@@ -109,16 +113,17 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
   // STEERING
   if (addr == fiat_addrs->LKAS_COMMAND) {
     const SteeringLimits limits = {
-      .max_steer = 261,
+      .max_steer = 360,
       .max_rt_delta = 112,
       .max_rt_interval = 250000,
       .max_rate_up = 3,
       .max_rate_down = 3,
-      .max_torque_error = 80,
+      .driver_torque_factor = 1,
+      .driver_torque_allowance = 80,
       .type = TorqueDriverLimited,
     };
 
-    int desired_torque = ((GET_BYTE(to_send, 0U) << 8) + (GET_BYTE(to_send, 1U) & 0xE0)) >> 5;
+    int desired_torque = ((GET_BYTE(to_send, 0U) << 3) + ((GET_BYTE(to_send, 1U) & 0xE0) >> 5));
     desired_torque -= 1024;
 
     bool steer_req = GET_BIT(to_send, 12U);
@@ -159,6 +164,7 @@ static int fiat_fwd_hook(int bus_num, int addr) {
 
 const FiatAddrs FASTBACK_ADDRS = {
   .ABS_6            = 0x101,
+  .ABS_6_2          = 0x101,
   .DAS_1            = 0x2FA,
   .DAS_2            = 0x5A5,
   .EPS_2            = 0x106,
@@ -170,7 +176,8 @@ static safety_config fiat_init(uint16_t param) {
   gen_crc_lookup_table_8(0x1D, fca_fastback_crc8_lut_j1850);
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.ABS_6,         1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6_2,       1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},

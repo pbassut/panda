@@ -20,6 +20,11 @@ void puth(unsigned int i) {
   printf("%u", i);
 }
 
+
+void putl(int i) {
+  printf("%d", i);
+}
+
 typedef struct {
   uint32_t CNT;
 } TIM_TypeDef;

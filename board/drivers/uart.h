@@ -149,6 +149,10 @@ void puth2(unsigned int i) {
   puthx(i, 2U);
 }
 
+void putl(int i) {
+  puthx(i, 8U);
+}
+
 #if defined(ENABLE_SPI) || defined(BOOTSTUB) || defined(DEBUG)
 void puth4(unsigned int i) {
   puthx(i, 4U);

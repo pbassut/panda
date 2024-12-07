@@ -16,16 +16,17 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafet
   FWD_BLACKLISTED_ADDRS = {2: [0x1F6]}
   FWD_BUS_LOOKUP = {0: 2, 2: 0}
 
-  MAX_TORQUE = 261
+  MAX_TORQUE = 360
   MAX_RT_DELTA = 112
   RT_INTERVAL = 250000
   MAX_RATE_UP = 3
   MAX_RATE_DOWN = 3
-  MAX_TORQUE_ERROR = 80
   DRIVER_TORQUE_FACTOR = 1
-  DRIVER_TORQUE_ALLOWANCE = 40
+  DRIVER_TORQUE_ALLOWANCE = 80
 
+  PT_BUS = 0
   DAS_BUS = 1
+  CAM_BUS = 2
 
   def setUp(self):
     self.packer = CANPackerPanda("fca_fastback_limited_edition_2024_generated")
@@ -43,23 +44,24 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafet
 
   def _speed_msg(self, speed):
     values = {"VEHICLE_SPEED": speed }
-    return self.packer.make_can_msg_panda("ABS_6", 0, values)
-
-  def _user_gas_msg(self, gas):
-    values = {"ACCEL_PEDAL_THRESHOLD": gas}
-    return self.packer.make_can_msg_panda("ENGINE_1", 0, values)
+    return self.packer.make_can_msg_panda("ABS_6", self.PT_BUS, values)
 
   def _user_brake_msg(self, brake):
     values = {"BRAKE_PRESSURE": brake}
-    return self.packer.make_can_msg_panda("ABS_6", 0, values)
+    return self.packer.make_can_msg_panda("ABS_6", self.PT_BUS, values)
+
+  def _user_gas_msg(self, gas):
+    values = {"ACCEL_PEDAL_THRESHOLD": gas}
+    return self.packer.make_can_msg_panda("ENGINE_1", self.PT_BUS, values)
 
   def _torque_driver_msg(self, torque):
     values = {"DRIVER_TORQUE": torque}
-    return self.packer.make_can_msg_panda("EPS_2", 0, values)
+    return self.packer.make_can_msg_panda("EPS_2", self.PT_BUS, values)
 
   def _torque_cmd_msg(self, torque, steer_req=1):
+    print("torque: ", torque)
     values = {"STEERING_TORQUE": torque, "LKAS_WATCH_STATUS": steer_req}
-    return self.packer.make_can_msg_panda("LKAS_COMMAND", 0, values)
+    return self.packer.make_can_msg_panda("LKAS_COMMAND", self.PT_BUS, values)
 
   def test_buttons(self):
     for controls_allowed in (True, False):

@@ -5,6 +5,7 @@ void print(const char *a);
 void puth(unsigned int i);
 void puth2(unsigned int i);
 void puth4(unsigned int i);
+void putl(int i);
 void hexdump(const void *a, int l);
 typedef struct board board;
 typedef struct harness_configuration harness_configuration;

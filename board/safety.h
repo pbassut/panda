@@ -617,6 +617,7 @@ bool steer_torque_cmd_checks(int desired_torque, int steer_req, const SteeringLi
       violation |= dist_to_meas_check(desired_torque, desired_torque_last, &torque_meas,
                                       limits.max_rate_up, limits.max_rate_down, limits.max_torque_error);
     }
+
     desired_torque_last = desired_torque;
 
     // *** torque real time rate limit check ***
