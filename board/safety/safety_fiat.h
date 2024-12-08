@@ -4,6 +4,7 @@
 
 typedef struct {
   const int ABS_6;
+  const int ABS_6_2;
   const int DAS_1;
   const int DAS_2;
   const int EPS_2;
@@ -155,6 +156,7 @@ static int fiat_fwd_hook(int bus_num, int addr) {
 }
 
 const FiatAddrs FASTBACK_ADDRS = {
+  .ABS_6_2          = 0x101,
   .ABS_6            = 0x101,
   .DAS_1            = 0x2FA,
   .DAS_2            = 0x5A5,
@@ -168,6 +170,7 @@ static safety_config fiat_init(uint16_t param) {
 
   static RxCheck fastback_rx_checks[] = {
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ABS_6_2,       1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
