@@ -44,7 +44,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafet
 
   def _speed_msg(self, speed):
     values = {"VEHICLE_SPEED": speed }
-    return self.packer.make_can_msg_panda("ABS_6", self.PT_BUS, values)
+    return self.packer.make_can_msg_panda("ABS_6", self.DAS_BUS, values)
 
   def _user_brake_msg(self, brake):
     values = {"BRAKE_PRESSURE": brake}

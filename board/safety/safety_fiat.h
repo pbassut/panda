@@ -77,22 +77,10 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     update_sample(&torque_driver, (torque_driver_new * -1) + 1024U);
   }
 
-  if (bus == 1 && addr == fiat_addrs->DAS_2) {
-    int acc_state = GET_BIT(to_push, 21U);
-    pcm_cruise_check(acc_state == 1);
-  }
-
-  if (bus == 0 && addr == fiat_addrs->ABS_6) {
-    uint16_t speed = (GET_BYTE(to_push, 1U) << 3) + ((GET_BYTE(to_push, 2U) & 0xE0U) >> 5);
-    print("speed: "); putl(speed); print("\n");
-    vehicle_moving = speed > 0;
-  }
-
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
     uint16_t break_pressure_1 = (GET_BYTE(to_push, 2U) & 0x1F) << 6;
     uint16_t break_pressure_2 = (GET_BYTE(to_push, 3U) & 0xFC) >> 2;
     uint16_t total_break_pressure = break_pressure_1 | break_pressure_2;
-    print("total break pressure: "); putl(total_break_pressure); print("\n");
     brake_pressed = total_break_pressure > 0;
   }
 
@@ -101,6 +89,16 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     uint16_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U) >> 5;
     float gas_pressed_threshold = (byte_2 + byte_3) * 0.3942;
     gas_pressed = gas_pressed_threshold > 0;
+  }
+
+  if (bus == 1 && addr == fiat_addrs->ABS_6) {
+    uint16_t speed = (GET_BYTE(to_push, 1U) << 3) + ((GET_BYTE(to_push, 2U) & 0xE0U) >> 5);
+    vehicle_moving = speed > 0;
+  }
+
+  if (bus == 1 && addr == fiat_addrs->DAS_2) {
+    int acc_state = GET_BIT(to_push, 21U);
+    pcm_cruise_check(acc_state == 1);
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
@@ -123,8 +121,9 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
       .type = TorqueDriverLimited,
     };
 
-    int desired_torque = ((GET_BYTE(to_send, 0U) << 3) + ((GET_BYTE(to_send, 1U) & 0xE0) >> 5));
-    desired_torque -= 1024;
+    int desired_torque = ((GET_BYTE(to_send, 0U) << 3) + ((GET_BYTE(to_send, 1U) & 0xE0) >> 5)) - 1024;
+    // desired_torque = to_signed(desired_torque - 1024, 11);
+    print("desired_torque: "); putl(desired_torque); print("\n");
 
     bool steer_req = GET_BIT(to_send, 12U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
@@ -177,7 +176,7 @@ static safety_config fiat_init(uint16_t param) {
 
   static RxCheck fastback_rx_checks[] = {
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ABS_6_2,       1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    // {.msg = {{FASTBACK_ADDRS.ABS_6_2,       1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
