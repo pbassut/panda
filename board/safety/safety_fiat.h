@@ -121,8 +121,6 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
     };
 
     int desired_torque = ((GET_BYTE(to_send, 0U) << 3) + ((GET_BYTE(to_send, 1U) & 0xE0) >> 5)) - 1024;
-    // desired_torque = to_signed(desired_torque - 1024, 11);
-    print("desired_torque: "); putl(desired_torque); print("\n");
 
     bool steer_req = GET_BIT(to_send, 12U);
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
