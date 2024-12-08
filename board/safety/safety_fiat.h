@@ -76,6 +76,10 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     update_sample(&torque_driver, (torque_driver_new * -1) + 1024U);
   }
 
+  if (bus == 0 && addr == fiat_addrs->ABS_6) {
+    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 0;
+  }
+
   if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
     uint16_t byte_2 = (GET_BYTE(to_push, 2U) & 0x1FU) << 3;
     uint16_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U) >> 5;
@@ -83,16 +87,8 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     gas_pressed = gas_pressed_threshold > 0;
   }
 
-  if (bus == 0 && addr == fiat_addrs->ABS_6) {
-    uint16_t break_pressure_1 = (GET_BYTE(to_push, 2U) & 0x1F) << 6;
-    uint16_t break_pressure_2 = (GET_BYTE(to_push, 3U) & 0xFC) >> 2;
-    uint16_t total_break_pressure = break_pressure_1 | break_pressure_2;
-    brake_pressed = total_break_pressure > 0;
-  }
-
   if (bus == 1 && addr == fiat_addrs->ABS_6) {
-    uint16_t speed = (GET_BYTE(to_push, 1U) << 3) + ((GET_BYTE(to_push, 2U) & 0xE0U) >> 5);
-    vehicle_moving = speed > 0;
+    vehicle_moving = ((GET_BYTE(to_push, 1U) << 3) + ((GET_BYTE(to_push, 2U) & 0xE0U) >> 5)) > 0;
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
