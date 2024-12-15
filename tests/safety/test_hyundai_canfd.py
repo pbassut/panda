@@ -78,6 +78,17 @@ class TestHyundaiCanfdBase(HyundaiButtonBase, common.PandaCarSafetyTest, common.
     }
     return self.packer.make_can_msg_panda("CRUISE_BUTTONS", bus, values)
 
+  def _acc_state_msg(self, enable):
+    values = {"MainMode_ACC": enable}
+    return self.packer.make_can_msg_panda("SCC_CONTROL", self.SCC_BUS, values)
+
+  def _lkas_button_msg(self, enabled):
+    values = {"LKAS_BTN": enabled}
+    return self.packer.make_can_msg_panda("CRUISE_BUTTONS", self.PT_BUS, values)
+
+  def _main_cruise_button_msg(self, enabled):
+    return self._button_msg(0, enabled)
+
 
 class TestHyundaiCanfdHDA1Base(TestHyundaiCanfdBase):
 
@@ -144,6 +155,10 @@ class TestHyundaiCanfdHDA1AltButtons(TestHyundaiCanfdHDA1Base):
       "CRUISE_BUTTONS": buttons,
       "ADAPTIVE_CRUISE_MAIN_BTN": main_button,
     }
+    return self.packer.make_can_msg_panda("CRUISE_BUTTONS_ALT", self.PT_BUS, values)
+
+  def _lkas_button_msg(self, enabled):
+    values = {"LFA_BTN": enabled}
     return self.packer.make_can_msg_panda("CRUISE_BUTTONS_ALT", self.PT_BUS, values)
 
   def test_button_sends(self):
@@ -223,6 +238,10 @@ class TestHyundaiCanfdHDA2LongEV(HyundaiLongitudinalBase, TestHyundaiCanfdHDA2EV
     }
     return self.packer.make_can_msg_panda("SCC_CONTROL", 1, values)
 
+  def _tx_acc_state_msg(self, enable):
+    values = {"MainMode_ACC": enable}
+    return self.packer.make_can_msg_panda("SCC_CONTROL", 0, values)
+
 
 # Tests HDA1 longitudinal for ICE, hybrid, EV
 @parameterized_class([
@@ -261,6 +280,10 @@ class TestHyundaiCanfdHDA1Long(HyundaiLongitudinalBase, TestHyundaiCanfdHDA1Base
       "aReqRaw": accel,
       "aReqValue": accel,
     }
+    return self.packer.make_can_msg_panda("SCC_CONTROL", 0, values)
+
+  def _tx_acc_state_msg(self, enable):
+    values = {"MainMode_ACC": enable}
     return self.packer.make_can_msg_panda("SCC_CONTROL", 0, values)
 
   # no knockout

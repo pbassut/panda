@@ -17,6 +17,7 @@ static int get_health_pkt(void *dat) {
   health->ignition_can_pkt = ignition_can;
 
   health->controls_allowed_pkt = controls_allowed;
+  health->controls_allowed_lat_pkt = mads_is_lateral_control_allowed_by_mads();
   health->safety_tx_blocked_pkt = safety_tx_blocked;
   health->safety_rx_invalid_pkt = safety_rx_invalid;
   health->tx_buffer_overflow_pkt = tx_buffer_overflow;
@@ -247,6 +248,7 @@ int comms_control_handler(ControlPacket_t *req, uint8_t *resp) {
       // you can only set this if you are in a non car safety mode
       if (!is_car_safety_mode(current_safety_mode)) {
         alternative_experience = req->param1;
+        mads_set_alternative_experience(&alternative_experience);
       }
       break;
     // **** 0xe0: uart read
@@ -350,6 +352,7 @@ int comms_control_handler(ControlPacket_t *req, uint8_t *resp) {
         heartbeat_lost = false;
         heartbeat_disabled = false;
         heartbeat_engaged = (req->param1 == 1U);
+        heartbeat_engaged_mads = true; // FIXME-SP: Implement proper heartbeat check from sunnypilot
         break;
       }
     // **** 0xf6: set siren enabled

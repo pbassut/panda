@@ -17,6 +17,7 @@ class TestNissanSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTest
 
   EPS_BUS = 0
   CRUISE_BUS = 2
+  ACC_MAIN_BUS = 1
 
   # Angle control limits
   DEG_TO_CAN = 100
@@ -55,6 +56,10 @@ class TestNissanSafety(common.PandaCarSafetyTest, common.AngleSteeringSafetyTest
     values = {"GAS_PEDAL": gas}
     return self.packer.make_can_msg_panda("GAS_PEDAL", self.EPS_BUS, values)
 
+  def _acc_state_msg(self, main_on):
+    values = {"CRUISE_ON": main_on}
+    return self.packer.make_can_msg_panda("PRO_PILOT", self.ACC_MAIN_BUS, values)
+
   def _acc_button_cmd(self, cancel=0, propilot=0, flw_dist=0, _set=0, res=0):
     no_button = not any([cancel, propilot, flw_dist, _set, res])
     values = {"CANCEL_BUTTON": cancel, "PROPILOT_BUTTON": propilot,
@@ -84,6 +89,7 @@ class TestNissanSafetyAltEpsBus(TestNissanSafety):
 
   EPS_BUS = 1
   CRUISE_BUS = 1
+  ACC_MAIN_BUS = 2
 
   def setUp(self):
     self.packer = CANPackerPanda("nissan_x_trail_2017_generated")
@@ -91,13 +97,17 @@ class TestNissanSafetyAltEpsBus(TestNissanSafety):
     self.safety.set_safety_hooks(Panda.SAFETY_NISSAN, Panda.FLAG_NISSAN_ALT_EPS_BUS)
     self.safety.init_tests()
 
+  def _acc_state_msg(self, main_on):
+    values = {"CRUISE_ON": main_on}
+    return self.packer.make_can_msg_panda("PRO_PILOT", self.ACC_MAIN_BUS, values)
+
 
 class TestNissanLeafSafety(TestNissanSafety):
 
   def setUp(self):
     self.packer = CANPackerPanda("nissan_leaf_2018_generated")
     self.safety = libpanda_py.libpanda
-    self.safety.set_safety_hooks(Panda.SAFETY_NISSAN, 0)
+    self.safety.set_safety_hooks(Panda.SAFETY_NISSAN, Panda.FLAG_NISSAN_LEAF)
     self.safety.init_tests()
 
   def _user_brake_msg(self, brake):
@@ -106,6 +116,10 @@ class TestNissanLeafSafety(TestNissanSafety):
 
   def _user_gas_msg(self, gas):
     values = {"GAS_PEDAL": gas}
+    return self.packer.make_can_msg_panda("CRUISE_THROTTLE", 0, values)
+
+  def _acc_state_msg(self, main_on):
+    values = {"CRUISE_AVAILABLE": main_on}
     return self.packer.make_can_msg_panda("CRUISE_THROTTLE", 0, values)
 
   # TODO: leaf should use its own safety param

@@ -126,11 +126,21 @@ static void hyundai_rx_hook(const CANPacket_t *to_push) {
     hyundai_common_cruise_state_check(cruise_engaged);
   }
 
+  if ((addr == 0x420) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
+    if (!hyundai_longitudinal) {
+      acc_main_on = GET_BIT(to_push, 0U);
+    }
+  }
+
   if (bus == 0) {
     if (addr == 0x251) {
       int torque_driver_new = (GET_BYTES(to_push, 0, 2) & 0x7ffU) - 1024U;
       // update array of samples
       update_sample(&torque_driver, torque_driver_new);
+    }
+
+    if (addr == 0x391) {
+      mads_button_press = GET_BIT(to_push, 4U) ? MADS_BUTTON_PRESSED : MADS_BUTTON_NOT_PRESSED;
     }
 
     // ACC steering wheel buttons
@@ -170,6 +180,8 @@ static void hyundai_rx_hook(const CANPacket_t *to_push) {
     }
     generic_rx_checks(stock_ecu_detected);
   }
+
+  hyundai_common_reset_acc_main_on_mismatches();
 }
 
 static bool hyundai_tx_hook(const CANPacket_t *to_send) {
@@ -188,6 +200,11 @@ static bool hyundai_tx_hook(const CANPacket_t *to_send) {
     if ((CR_VSM_DecCmd != 0) || FCA_CmdAct || CF_VSM_DecCmdAct) {
       tx = false;
     }
+  }
+
+  if (addr == 0x420) {
+    acc_main_on_tx = GET_BIT(to_send, 0U);
+    hyundai_common_acc_main_on_sync();
   }
 
   // ACCEL: safety check
