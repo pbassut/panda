@@ -107,7 +107,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
   // STEERING
   if (addr == fiat_addrs->LKAS_COMMAND) {
     const SteeringLimits limits = {
-      .max_steer = 360,
+      .max_steer = 1080,
       .max_rt_delta = 112,
       .max_rt_interval = 250000,
       .max_rate_up = 3,
