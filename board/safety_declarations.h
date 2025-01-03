@@ -285,3 +285,37 @@ bool mads_enabled = false;
 uint32_t safety_mode_cnt = 0U;
 // allow 1s of transition timeout after relay changes state before assessing malfunctioning
 const uint32_t RELAY_TRNS_TIMEOUT = 1U;
+
+typedef struct {
+  uint16_t id;
+  const safety_hooks *hooks;
+} safety_hook_config;
+
+extern uint16_t current_safety_mode;
+extern uint16_t current_safety_param;
+extern safety_config current_safety_config;
+
+int safety_fwd_hook(int bus_num, int addr);
+int set_safety_hooks(uint16_t mode, uint16_t param);
+
+extern const safety_hooks body_hooks;
+extern const safety_hooks chrysler_hooks;
+extern const safety_hooks elm327_hooks;
+extern const safety_hooks nooutput_hooks;
+extern const safety_hooks alloutput_hooks;
+extern const safety_hooks ford_hooks;
+extern const safety_hooks fiat_hooks;
+extern const safety_hooks gm_hooks;
+extern const safety_hooks honda_nidec_hooks;
+extern const safety_hooks honda_bosch_hooks;
+extern const safety_hooks hyundai_canfd_hooks;
+extern const safety_hooks hyundai_hooks;
+extern const safety_hooks hyundai_legacy_hooks;
+extern const safety_hooks mazda_hooks;
+extern const safety_hooks nissan_hooks;
+extern const safety_hooks subaru_hooks;
+extern const safety_hooks subaru_preglobal_hooks;
+extern const safety_hooks tesla_hooks;
+extern const safety_hooks toyota_hooks;
+extern const safety_hooks volkswagen_mqb_hooks;
+extern const safety_hooks volkswagen_pq_hooks;
