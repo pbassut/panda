@@ -44,11 +44,11 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafet
 
   def _speed_msg(self, speed):
     values = {"VEHICLE_SPEED": speed }
-    return self.packer.make_can_msg_panda("ABS_6", self.DAS_BUS, values)
+    return self.packer.make_can_msg_panda("ABS_6", self.PT_BUS, values)
 
   def _user_brake_msg(self, brake):
     values = {"BRAKE_PRESSURE": brake}
-    return self.packer.make_can_msg_panda("ABS_6", self.DAS_BUS, values)
+    return self.packer.make_can_msg_panda("ABS_6", self.PT_BUS, values)
 
   def _user_gas_msg(self, gas):
     values = {"ACCEL_PEDAL_THRESHOLD": gas}
@@ -62,6 +62,13 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafet
     # print("torque: ", torque)
     values = {"STEERING_TORQUE": torque, "LKAS_WATCH_STATUS": steer_req}
     return self.packer.make_can_msg_panda("LKAS_COMMAND", self.PT_BUS, values)
+
+  def _vehicle_moving_and_brake_msg(self, speed, brake):
+    values = {
+      "BRAKE_PRESSURE": brake,
+      "VEHICLE_SPEED": speed
+    }
+    return self.packer.make_can_msg_panda("ABS_6", self.PT_BUS, values)
 
   def test_buttons(self):
     for controls_allowed in (True, False):

@@ -840,6 +840,9 @@ class PandaCarSafetyTest(PandaSafetyTest, MadsCommonBase):
   def _vehicle_moving_msg(self, speed: float):
     return self._speed_msg(speed)
 
+  def _vehicle_moving_and_brake_msg(self, speed, brake):
+    pass
+
   @abc.abstractmethod
   def _user_gas_msg(self, gas):
     pass
@@ -958,12 +961,10 @@ class PandaCarSafetyTest(PandaSafetyTest, MadsCommonBase):
     # Brake was already pressed
     self._rx(_user_brake_msg(1))
     self.safety.set_controls_allowed(1)
-    self._rx(self._vehicle_moving_msg(self.STANDSTILL_THRESHOLD))
-    self._rx(_user_brake_msg(1))
+    self._rx(self._vehicle_moving_and_brake_msg(speed=self.STANDSTILL_THRESHOLD, brake=1))
     self.assertTrue(self.safety.get_controls_allowed())
     self.assertTrue(self.safety.get_longitudinal_allowed())
-    self._rx(self._vehicle_moving_msg(self.STANDSTILL_THRESHOLD + 1))
-    self._rx(_user_brake_msg(1))
+    self._rx(self._vehicle_moving_and_brake_msg(speed=self.STANDSTILL_THRESHOLD + 1, brake=1))
     self.assertFalse(self.safety.get_controls_allowed())
     self.assertFalse(self.safety.get_longitudinal_allowed())
     self._rx(self._vehicle_moving_msg(0))
