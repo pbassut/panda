@@ -224,17 +224,15 @@ class MadsCommonBase(unittest.TestCase):
 
               # Set controls_allowed_lat rising edge
               self.safety.set_controls_requested_lat(True)
-              self._rx(self._speed_msg(0))
+              self._rx(self._vehicle_moving_and_brake_msg(speed=0, brake=False))
               self.assertEqual(enable_mads, self.safety.get_controls_allowed_lat())
 
               # User brake press, validate controls_allowed_lat is false
-              self._rx(self._user_brake_msg(True))
-              self._rx(self._speed_msg(0))
+              self._rx(self._vehicle_moving_and_brake_msg(speed=0, brake=True))
               self.assertEqual(enable_mads and not disengage_lateral_on_brake, self.safety.get_controls_allowed_lat())
 
               # User brake release, validate controls_allowed_lat is true
-              self._rx(self._user_brake_msg(False))
-              self._rx(self._speed_msg(0))
+              self._rx(self._vehicle_moving_and_brake_msg(speed=0, brake=False))
               self.assertEqual(enable_mads, self.safety.get_controls_allowed_lat())
     finally:
       self._mads_states_cleanup()
@@ -248,17 +246,16 @@ class MadsCommonBase(unittest.TestCase):
 
       # Vehicle moving, validate controls_allowed_lat is true
       for _ in range(10):
-        self._rx(self._speed_msg(10))
+        self._rx(self._vehicle_moving_and_brake_msg(speed=10, brake=False))
         self.assertTrue(self.safety.get_controls_allowed_lat())
 
       # User braked, vehicle slowed down in 10 frames, then stopped for 10 frames
       # Validate controls_allowed_lat is false
-      self._rx(self._user_brake_msg(True))
       for _ in range(10):
-        self._rx(self._speed_msg(5))
+        self._rx(self._vehicle_moving_and_brake_msg(speed=5, brake=True))
         self.assertFalse(self.safety.get_controls_allowed_lat())
       for _ in range(10):
-        self._rx(self._speed_msg(0))
+        self._rx(self._vehicle_moving_and_brake_msg(speed=0, brake=True))
         self.assertFalse(self.safety.get_controls_allowed_lat())
     finally:
       self._mads_states_cleanup()

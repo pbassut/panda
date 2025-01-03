@@ -22,7 +22,7 @@ class TestFiatSafety(common.PandaCarSafetyTest, common.DriverTorqueSteeringSafet
   MAX_RATE_UP = 3
   MAX_RATE_DOWN = 3
   DRIVER_TORQUE_FACTOR = 1
-  DRIVER_TORQUE_ALLOWANCE = 80
+  DRIVER_TORQUE_ALLOWANCE = 20
 
   PT_BUS = 0
   DAS_BUS = 1
