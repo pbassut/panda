@@ -77,8 +77,12 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     update_sample(&torque_driver, (torque_driver_new * -1) + 1024U);
   }
 
-  if (bus == 0 && addr == fiat_addrs->ABS_6) {
-    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 0;
+  if (bus == 1 && addr == fiat_addrs->DAS_2) {
+    bool acc_state = GET_BIT(to_push, 21U) == 1U;
+    pcm_cruise_check(acc_state);
+
+    acc_main_on = GET_BIT(to_push, 7U) == 1U;
+    mads_acc_main_check(acc_main_on);
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
@@ -86,15 +90,11 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
-    uint16_t byte_2 = (GET_BYTE(to_push, 2U) & 0x1FU) << 3;
-    uint16_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U) >> 5;
-    float gas_pressed_threshold = (byte_2 + byte_3) * 0.3942;
-    gas_pressed = gas_pressed_threshold > 0;
+    gas_pressed = (((GET_BYTE(to_push, 2U) & 0x1FU) << 3) + ((GET_BYTE(to_push, 3U) & 0xE0U) >> 5)) * 0.3942 > 0;
   }
 
-  if (bus == 1 && addr == fiat_addrs->DAS_2) {
-    int acc_state = GET_BIT(to_push, 21U);
-    pcm_cruise_check(acc_state == 1);
+  if (bus == 0 && addr == fiat_addrs->ABS_6) {
+    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 0;
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));

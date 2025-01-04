@@ -9,6 +9,7 @@
 #include "safety/safety_toyota.h"
 #include "safety/safety_tesla.h"
 #include "safety/safety_gm.h"
+#include "safety/safety_fiat.h"
 #include "safety/safety_ford.h"
 #include "safety/safety_hyundai.h"
 #include "safety/safety_chrysler.h"
@@ -53,6 +54,7 @@
 #define SAFETY_FAW 26U
 #define SAFETY_BODY 27U
 #define SAFETY_HYUNDAI_CANFD 28U
+#define SAFETY_FIAT 33U
 
 uint16_t current_safety_mode = SAFETY_SILENT;
 uint16_t current_safety_param = 0;
@@ -319,6 +321,7 @@ const safety_hook_config safety_hook_registry[] = {
   {SAFETY_HONDA_BOSCH, &honda_bosch_hooks},
   {SAFETY_HYUNDAI, &hyundai_hooks},
   {SAFETY_CHRYSLER, &chrysler_hooks},
+  {SAFETY_FIAT, &fiat_hooks},
   {SAFETY_SUBARU, &subaru_hooks},
   {SAFETY_VOLKSWAGEN_MQB, &volkswagen_mqb_hooks},
   {SAFETY_NISSAN, &nissan_hooks},
