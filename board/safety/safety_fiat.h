@@ -10,6 +10,7 @@ typedef struct {
   const int EPS_2;
   const int ENGINE_1;
   const int LKAS_COMMAND;
+  const int LKA_HUD_2;
 } FiatAddrs;
 
 typedef enum {
@@ -104,6 +105,10 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
+  if (addr == fiat_addrs->LKA_HUD_2) {
+    tx = false;
+  }
+
   // STEERING
   if (addr == fiat_addrs->LKAS_COMMAND) {
     const SteeringLimits limits = {
@@ -163,6 +168,7 @@ const FiatAddrs FASTBACK_ADDRS = {
   .EPS_2            = 0x106,
   .ENGINE_1         = 0xFC,
   .LKAS_COMMAND     = 0x1F6,
+  .LKA_HUD_2        = 0x547,
 };
 
 static safety_config fiat_init(uint16_t param) {
@@ -180,6 +186,8 @@ static safety_config fiat_init(uint16_t param) {
   static const CanMsg FASTBACK_TX_MSGS[] = {
     {FASTBACK_ADDRS.DAS_1,        1, 4},
     {FASTBACK_ADDRS.LKAS_COMMAND, 0, 4},
+    {FASTBACK_ADDRS.LKA_HUD_2,    0, 8},
+    {FASTBACK_ADDRS.ENGINE_1,     0, 8},
   };
 
   fiat_platform = FASTBACK_LIMITED_EDITION;
