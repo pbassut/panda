@@ -105,10 +105,6 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
 
-  if (addr == fiat_addrs->LKA_HUD_2) {
-    tx = false;
-  }
-
   // STEERING
   if (addr == fiat_addrs->LKAS_COMMAND) {
     const SteeringLimits limits = {
