@@ -111,7 +111,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
       .max_steer = 1440,
       .max_rt_delta = 112,
       .max_rt_interval = 250000,
-      .max_rate_up = 3,
+      .max_rate_up = 4,
       .max_rate_down = 3,
       .driver_torque_factor = 1,
       .driver_torque_allowance = 20,
