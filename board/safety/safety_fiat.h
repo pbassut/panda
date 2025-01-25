@@ -3,13 +3,13 @@
 #include "safety_declarations.h"
 
 typedef struct {
-  const int BCM_2;
   const int ABS_6;
   const int DAS_1;
   const int DAS_2;
   const int EPS_2;
   const int ENGINE_1;
   const int LKAS_COMMAND;
+  const int LKA_HUD_2;
 } FiatAddrs;
 
 typedef enum {
@@ -77,8 +77,11 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     update_sample(&torque_driver, (torque_driver_new * -1) + 1024U);
   }
 
-  if (bus == 0 && addr == fiat_addrs->ABS_6) {
-    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 0;
+  if (bus == 1 && addr == fiat_addrs->DAS_2) {
+    bool acc_state = GET_BIT(to_push, 21U) == 1U;
+    pcm_cruise_check(acc_state);
+
+    acc_main_on = GET_BIT(to_push, 7U) == 1U;
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
@@ -86,15 +89,11 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
-    uint16_t byte_2 = (GET_BYTE(to_push, 2U) & 0x1FU) << 3;
-    uint16_t byte_3 = (GET_BYTE(to_push, 3U) & 0xE0U) >> 5;
-    float gas_pressed_threshold = (byte_2 + byte_3) * 0.3942;
-    gas_pressed = gas_pressed_threshold > 0;
+    gas_pressed = (((GET_BYTE(to_push, 2U) & 0x1FU) << 3) + ((GET_BYTE(to_push, 3U) & 0xE0U) >> 5)) * 0.3942 > 0;
   }
 
-  if (bus == 1 && addr == fiat_addrs->DAS_2) {
-    int acc_state = GET_BIT(to_push, 21U);
-    pcm_cruise_check(acc_state == 1);
+  if (bus == 0 && addr == fiat_addrs->ABS_6) {
+    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 0;
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
@@ -113,7 +112,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
       .max_rate_up = 3,
       .max_rate_down = 3,
       .driver_torque_factor = 1,
-      .driver_torque_allowance = 20,
+      .driver_torque_allowance = 80,
       .type = TorqueDriverLimited,
     };
 
@@ -148,7 +147,8 @@ static int fiat_fwd_hook(int bus_num, int addr) {
 
   // forward all messages from camera except LKAS messages
   const bool is_lkas = addr == fiat_addrs->LKAS_COMMAND;
-  if ((bus_num == 2) && !is_lkas){
+  const bool is_lkas_hud = addr == fiat_addrs->LKA_HUD_2;
+  if ((bus_num == 2) && !is_lkas && !is_lkas_hud){
     bus_fwd = 0;
   }
 
@@ -156,30 +156,31 @@ static int fiat_fwd_hook(int bus_num, int addr) {
 }
 
 const FiatAddrs FASTBACK_ADDRS = {
-  .BCM_2            = 0x73E,
   .ABS_6            = 0x101,
   .DAS_1            = 0x2FA,
   .DAS_2            = 0x5A5,
   .EPS_2            = 0x106,
   .ENGINE_1         = 0xFC,
   .LKAS_COMMAND     = 0x1F6,
+  .LKA_HUD_2        = 0x547,
 };
 
 static safety_config fiat_init(uint16_t param) {
   gen_crc_lookup_table_8(0x1D, fca_fastback_crc8_lut_j1850);
 
   static RxCheck fastback_rx_checks[] = {
-    {.msg = {{FASTBACK_ADDRS.BCM_2,         0, 4, .check_checksum = false,      .max_counter = 0U, .frequency = 4U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ABS_6,         0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 99U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
     {FASTBACK_ADDRS.DAS_1,        1, 4},
     {FASTBACK_ADDRS.LKAS_COMMAND, 0, 4},
+    {FASTBACK_ADDRS.LKA_HUD_2,    0, 8},
+    {FASTBACK_ADDRS.ENGINE_1,     0, 8},
   };
 
   fiat_platform = FASTBACK_LIMITED_EDITION;
@@ -199,3 +200,5 @@ const safety_hooks fiat_hooks = {
   .get_checksum = fca_fastback_get_checksum,
   .compute_checksum = fca_fastback_compute_crc,
 };
+
+
