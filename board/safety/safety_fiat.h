@@ -88,7 +88,7 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
     vehicle_moving = ((GET_BYTE(to_push, 1U) << 3) + ((GET_BYTE(to_push, 2U) & 0xE0U) >> 5)) > 0;
   }
 
-  if (bus == 0 && addr == fiat_addrs->ENGINE_1) {
+  if (bus == 1 && addr == fiat_addrs->ENGINE_1) {
     gas_pressed = (((GET_BYTE(to_push, 2U) & 0x1FU) << 3) + ((GET_BYTE(to_push, 3U) & 0xE0U) >> 5)) * 0.3942 > 0;
   }
 
@@ -112,7 +112,7 @@ static bool fiat_tx_hook(const CANPacket_t *to_send) {
       .max_rate_up = 4,
       .max_rate_down = 3,
       .driver_torque_factor = 1,
-      .driver_torque_allowance = 20,
+      .driver_torque_allowance = 15,
       .type = TorqueDriverLimited,
     };
 
@@ -173,7 +173,7 @@ static safety_config fiat_init(uint16_t param) {
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      0, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
