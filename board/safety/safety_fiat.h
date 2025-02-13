@@ -70,11 +70,10 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
 
   // Measured driver torque
   if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
-    uint16_t byte_1 = (GET_BYTE(to_push, 2U) & 0xFF) << 3;
-    uint16_t byte_2 = (GET_BYTE(to_push, 3U) & 0xE0) >> 5;
-    uint16_t torque_driver_new = byte_1 + byte_2;
-
-    update_sample(&torque_driver, (torque_driver_new * -1) + 1024U);
+    update_sample(
+      &torque_driver,
+      (((GET_BYTE(to_push, 2U) & 0xFF) << 3) + ((GET_BYTE(to_push, 3U) & 0xE0) >> 5)) - 1024U
+    );
   }
 
   if (bus == 1 && addr == fiat_addrs->DAS_2) {
