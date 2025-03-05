@@ -183,6 +183,7 @@ static safety_config fiat_init(uint16_t param) {
     {FASTBACK_ADDRS.LKA_HUD_2,    0, 8},
     {FASTBACK_ADDRS.DAS_1,        1, 4},
     {FASTBACK_ADDRS.ACCEL_1,      1, 8},
+    {FASTBACK_ADDRS.ABS_6,        1, 8},
   };
 
   fiat_platform = FASTBACK_LIMITED_EDITION;
