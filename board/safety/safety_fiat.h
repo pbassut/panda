@@ -7,6 +7,7 @@ typedef struct {
   const int DAS_1;
   const int DAS_2;
   const int EPS_2;
+  const int ENGINE_1;
   const int ACCEL_1;
   const int LKAS_COMMAND;
   const int LKA_HUD_2;
@@ -160,6 +161,7 @@ const FiatAddrs FASTBACK_ADDRS = {
   .DAS_1            = 0x2FA,
   .DAS_2            = 0x5A5,
   .EPS_2            = 0x106,
+  .ENGINE_1         = 0xFC,
   .ACCEL_1          = 0x100,
   .LKAS_COMMAND     = 0x1F6,
   .LKA_HUD_2        = 0x547,
@@ -173,7 +175,7 @@ static safety_config fiat_init(uint16_t param) {
     {.msg = {{FASTBACK_ADDRS.DAS_1,         1, 4, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
-    {.msg = {{FASTBACK_ADDRS.ACCEL_1,       1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U}, { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.ENGINE_1,      1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {
