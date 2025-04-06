@@ -71,7 +71,7 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   const int addr = GET_ADDR(to_push);
 
   if (GET_BUS(to_push) == 0U && addr == fiat_addrs->BUTTONS_1) {
-    bool lkas_button_pressed = (GET_BYTE(to_push, 3) & 0xC0U) > 0;
+    bool lkas_button_pressed = (GET_BYTE(to_push, 3) & 0x40U) > 0;
     if(lkas_button_pressed && !lateral_controls_allowed_prev) {
       lateral_controls_allowed = true;
     }
