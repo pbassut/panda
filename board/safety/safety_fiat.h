@@ -94,7 +94,7 @@ static void fiat_rx_hook(const CANPacket_t *to_push) {
   }
 
   if (bus == 0 && addr == fiat_addrs->ABS_6) {
-    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 0;
+    brake_pressed = (((GET_BYTE(to_push, 2U) & 0x1F) << 6) + ((GET_BYTE(to_push, 3U) & 0xFC) >> 2)) > 4;
   }
 
   generic_rx_checks((bus == 0) && (addr == fiat_addrs->LKAS_COMMAND));
