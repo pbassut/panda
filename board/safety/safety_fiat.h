@@ -11,6 +11,7 @@ typedef struct {
   const int ACCEL_1;
   const int LKAS_COMMAND;
   const int LKA_HUD_2;
+  const int BUTTONS_1;
 } FiatAddrs;
 
 typedef enum {
@@ -68,6 +69,15 @@ static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
 static void fiat_rx_hook(const CANPacket_t *to_push) {
   const int bus = GET_BUS(to_push);
   const int addr = GET_ADDR(to_push);
+
+  if (GET_BUS(to_push) == 0U && addr == fiat_addrs->BUTTONS_1) {
+    bool lkas_button_pressed = (GET_BYTE(to_push, 3) & 0xC0U) > 0;
+    if(lkas_button_pressed && !lateral_controls_allowed_prev) {
+      lateral_controls_allowed = true;
+    }
+
+    lateral_controls_allowed_prev = lateral_controls_allowed;
+  }
 
   // Measured driver torque
   if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
@@ -165,6 +175,7 @@ const FiatAddrs FASTBACK_ADDRS = {
   .ACCEL_1          = 0x100,
   .LKAS_COMMAND     = 0x1F6,
   .LKA_HUD_2        = 0x547,
+  .BUTTONS_1        = 0x384,
 };
 
 static safety_config fiat_init(uint16_t param) {
@@ -176,6 +187,7 @@ static safety_config fiat_init(uint16_t param) {
     {.msg = {{FASTBACK_ADDRS.DAS_2,         1, 8, .check_checksum = false,     .max_counter = 0U,  .frequency = 1U},   { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.EPS_2,         0, 7, .check_checksum = true,      .max_counter = 15U, .frequency = 50U},  { 0 }, { 0 }}},
     {.msg = {{FASTBACK_ADDRS.ENGINE_1,      1, 8, .check_checksum = true,      .max_counter = 15U, .frequency = 100U},  { 0 }, { 0 }}},
+    {.msg = {{FASTBACK_ADDRS.BUTTONS_1,     0, 7, .check_checksum = false,     .max_counter = 0U,  .frequency = 4U},   { 0 }, { 0 }}},
   };
 
   static const CanMsg FASTBACK_TX_MSGS[] = {

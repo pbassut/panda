@@ -192,6 +192,8 @@ void pcm_cruise_check(bool cruise_engaged);
 void safety_tick(const safety_config *safety_config);
 
 // This can be set by the safety hooks
+extern bool lateral_controls_allowed;
+
 extern bool controls_allowed;
 extern bool relay_malfunction;
 extern bool gas_pressed;
