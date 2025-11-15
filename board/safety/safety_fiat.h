@@ -19,7 +19,6 @@ typedef enum {
 } FiatPlatform;
 static FiatPlatform fiat_platform;
 static const FiatAddrs *fiat_addrs;
-static bool lkas_button_prev = false;
 
 uint8_t fca_fastback_crc8_lut_j1850[256];  // Static lookup table for CRC8 SAE J1850
 
@@ -70,15 +69,6 @@ static uint32_t fca_fastback_compute_crc(const CANPacket_t *to_push) {
 static void fiat_rx_hook(const CANPacket_t *to_push) {
   const int bus = GET_BUS(to_push);
   const int addr = GET_ADDR(to_push);
-
-  if (GET_BUS(to_push) == 0U && addr == fiat_addrs->BUTTONS_1) {
-    bool lkas_button_pressed = (GET_BYTE(to_push, 3) & 0xC0U) > 0;
-    // Toggle lateral_controls_allowed on button press (rising edge)
-    if(lkas_button_pressed && !lkas_button_prev) {
-      lateral_controls_allowed = !lateral_controls_allowed;
-    }
-    lkas_button_prev = lkas_button_pressed;
-  }
 
   // Measured driver torque
   if ((bus == 0) && (addr == fiat_addrs->EPS_2)) {
