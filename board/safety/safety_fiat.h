@@ -19,6 +19,7 @@ typedef enum {
 } FiatPlatform;
 static FiatPlatform fiat_platform;
 static const FiatAddrs *fiat_addrs;
+static bool lateral_controls_allowed_prev = false;
 
 uint8_t fca_fastback_crc8_lut_j1850[256];  // Static lookup table for CRC8 SAE J1850
 
